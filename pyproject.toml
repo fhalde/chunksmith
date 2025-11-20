@@ -7,4 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
     "pymupdf>=1.26.6",
     "pywebview>=6.1",
+    "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.1.2",
 ]

@@ -4,13 +4,15 @@ import fitz
 import webview
 from typing import List, Dict, Any
 from .chunkers.basic import BasicWordChunker, SentenceChunker
+from .chunkers.semantic import SemanticChunker
 
 class Api:
     def __init__(self):
         self._window = None
         self.chunkers = {
             "Basic Word Chunker": BasicWordChunker(),
-            "Sentence Chunker": SentenceChunker()
+            "Sentence Chunker": SentenceChunker(),
+            "Semantic Chunker": SemanticChunker()
         }
 
     def set_window(self, window):
@@ -101,4 +103,3 @@ class Api:
         except Exception as e:
             print(f"Error rendering page: {e}")
             return None
-
