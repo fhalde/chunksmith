@@ -4,13 +4,6 @@
 
 Designed for developers building RAG (Retrieval-Augmented Generation) pipelines, ChunkSmith provides a visual interface to see exactly *where* and *how* your documents are being split.
 
-## Features
-
-- **Visual Feedback**: Instantly see bounding boxes for every generated chunk on the actual PDF.
-- **Algorithm Playground**: Switch between different strategies (Basic, Semantic, Topic-based) on the fly.
-- **Extensible Architecture**: Easily plug in your own custom chunking logic by extending a simple Python interface.
-- **Deep Inspection**: View raw text, metadata, and spatial coordinates for every segment.
-
 ## Installation
 
 ChunkSmith is built with Python and uses `uv` for fast dependency management.
@@ -23,7 +16,7 @@ ChunkSmith is built with Python and uses `uv` for fast dependency management.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/chunksmith.git
+   git clone https://github.com/fhalde/chunksmith.git
    cd chunksmith
    ```
 
@@ -34,7 +27,7 @@ ChunkSmith is built with Python and uses `uv` for fast dependency management.
 
 3. **Run the application**
    ```bash
-   python main.py
+   uv run main.py
    ```
 
 ## Included Algorithms
