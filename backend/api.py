@@ -5,6 +5,7 @@ import webview
 from typing import List, Dict, Any
 from .chunkers.basic import BasicWordChunker, SentenceChunker
 from .chunkers.semantic import SemanticChunker
+from .chunkers.topic import TopicChunker
 
 class Api:
     def __init__(self):
@@ -13,12 +14,14 @@ class Api:
         basic_chunker = BasicWordChunker()
         sentence_chunker = SentenceChunker()
         semantic_chunker = SemanticChunker()
+        topic_chunker = TopicChunker()
 
         # Use the dynamic name property for the key
         self.chunkers = {
             basic_chunker.name: basic_chunker,
             sentence_chunker.name: sentence_chunker,
-            semantic_chunker.name: semantic_chunker
+            semantic_chunker.name: semantic_chunker,
+            topic_chunker.name: topic_chunker
         }
 
     def set_window(self, window):
