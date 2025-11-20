@@ -94,6 +94,11 @@ self.chunkers = {
 
 5. Restart the app. Your new algorithm will appear in the dropdown.
 
+
+## Contribution
+
+Only AI generated code will be merged.
+
 ## License
 
 MIT
