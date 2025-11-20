@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Chunker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="controls">
+                <button id="btn-select-pdf">Select PDF</button>
+                <div id="selected-file" class="file-path">No file selected</div>
+
+                <label for="algorithm-select">Algorithm:</label>
+                <select id="algorithm-select"></select>
+
+                <button id="btn-process">Process</button>
+            </div>
+
+            <div class="chunk-list-container">
+                <h3>Chunks</h3>
+                <div id="chunk-list"></div>
+            </div>
+
+            <div class="navigation">
+                <button id="btn-prev">Previous</button>
+                <button id="btn-next">Next</button>
+            </div>
+        </div>
+
+        <div class="main-content" id="pdf-container">
+            <div id="pages-wrapper"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
