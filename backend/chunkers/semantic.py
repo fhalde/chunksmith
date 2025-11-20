@@ -2,8 +2,6 @@ import fitz
 import uuid
 import numpy as np
 from typing import List, Tuple, Dict
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 from .base import BaseChunker, Chunk, BoundingBox
 
 class SemanticChunker(BaseChunker):
@@ -32,6 +30,8 @@ class SemanticChunker(BaseChunker):
     def model(self):
         if self._model is None:
             print(f"Loading embedding model: {self.model_name}...")
+            # Lazy import to speed up app startup
+            from sentence_transformers import SentenceTransformer
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
@@ -89,6 +89,8 @@ class SemanticChunker(BaseChunker):
         return sentences
 
     def chunk(self, pdf_path: str) -> List[Chunk]:
+        from sklearn.metrics.pairwise import cosine_similarity
+
         doc = fitz.open(pdf_path)
 
         # 1. Extract sentences

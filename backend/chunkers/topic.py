@@ -2,8 +2,6 @@ import fitz
 import uuid
 import numpy as np
 from typing import List
-from sentence_transformers import SentenceTransformer
-from sklearn.cluster import KMeans
 from .base import BaseChunker, Chunk, BoundingBox
 
 class TopicChunker(BaseChunker):
@@ -24,6 +22,8 @@ class TopicChunker(BaseChunker):
     def model(self):
         if self._model is None:
             print(f"Loading embedding model: {self.model_name}...")
+            # Lazy import to speed up app startup
+            from sentence_transformers import SentenceTransformer
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
@@ -77,6 +77,8 @@ class TopicChunker(BaseChunker):
         return sentences
 
     def chunk(self, pdf_path: str) -> List[Chunk]:
+        from sklearn.cluster import KMeans
+
         doc = fitz.open(pdf_path)
 
         # 1. Extract sentences
@@ -143,4 +145,3 @@ class TopicChunker(BaseChunker):
             bboxes=combined_bboxes,
             metadata={}
         )]
-
