@@ -1,4 +1,4 @@
-ChunkSmith
+# ChunkSmith
 
 **ChunkSmith** is a specialized workbench for Chunk Engineers. It allows you to visualize, test, and refine PDF chunking algorithms.
 
