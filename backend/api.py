@@ -9,10 +9,16 @@ from .chunkers.semantic import SemanticChunker
 class Api:
     def __init__(self):
         self._window = None
+        # Initialize chunkers
+        basic_chunker = BasicWordChunker()
+        sentence_chunker = SentenceChunker()
+        semantic_chunker = SemanticChunker()
+
+        # Use the dynamic name property for the key
         self.chunkers = {
-            "Basic Word Chunker": BasicWordChunker(),
-            "Sentence Chunker": SentenceChunker(),
-            "Semantic Chunker": SemanticChunker()
+            basic_chunker.name: basic_chunker,
+            sentence_chunker.name: sentence_chunker,
+            semantic_chunker.name: semantic_chunker
         }
 
     def set_window(self, window):
@@ -40,7 +46,7 @@ class Api:
 
         chunker = self.chunkers.get(algorithm_name)
         if not chunker:
-            return {"error": "Algorithm not found"}
+            return {"error": f"Algorithm '{algorithm_name}' not found. Available: {list(self.chunkers.keys())}"}
 
         try:
             # Get document info for rendering setup on frontend

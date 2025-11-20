@@ -1,29 +1,36 @@
 import fitz
 import uuid
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from .base import BaseChunker, Chunk, BoundingBox
 
 class SemanticChunker(BaseChunker):
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", threshold: float = 0.5):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", percentile_threshold: float = 90.0, window_size: int = 1):
+        """
+        Args:
+            model_name: HuggingFace model name.
+            percentile_threshold: The percentile of cosine distances to use as a split threshold.
+                                  Higher = fewer chunks (only splits at the most distinct transitions).
+            window_size: Number of sentences to look ahead/behind for context when embedding.
+        """
         self.model_name = model_name
-        self.threshold = threshold
+        self.percentile_threshold = percentile_threshold
+        self.window_size = window_size
         self._model = None
 
     @property
     def name(self) -> str:
-        return "Semantic Chunker"
+        return "Semantic Chunker (Percentile)"
 
     @property
     def description(self) -> str:
-        return f"Expands chunks based on semantic similarity (Model: {self.model_name}, Threshold: {self.threshold})."
+        return f"Splits text at the top {100-self.percentile_threshold}% of semantic transitions. Groups related bullets."
 
     @property
     def model(self):
         if self._model is None:
-            # Lazy load the model
             print(f"Loading embedding model: {self.model_name}...")
             self._model = SentenceTransformer(self.model_name)
         return self._model
@@ -48,7 +55,11 @@ class SemanticChunker(BaseChunker):
                         text = span["text"]
                         bbox = span["bbox"]
 
-                        current_sent_text += text + " "
+                        # Handle basic whitespace to avoid words gluing together
+                        if current_sent_text and not current_sent_text.endswith(" "):
+                             current_sent_text += " "
+
+                        current_sent_text += text
                         current_sent_bboxes.append(BoundingBox(
                             page=page_num,
                             x0=bbox[0],
@@ -57,7 +68,8 @@ class SemanticChunker(BaseChunker):
                             y1=bbox[3]
                         ))
 
-                        # Naive sentence splitting
+                        # Naive sentence splitting: Period, !, ? or essentially newline if it looks like a bullet
+                        # If text ends with a punctuation mark, we split.
                         if text.strip().endswith((".", "!", "?")):
                             sentences.append({
                                 "text": current_sent_text.strip(),
@@ -67,6 +79,7 @@ class SemanticChunker(BaseChunker):
                             current_sent_bboxes = []
 
                 # Capture any remaining text in the block as a sentence
+                # This handles bullet points that don't end in punctuation but are in separate blocks/lines
                 if current_sent_text.strip():
                     sentences.append({
                         "text": current_sent_text.strip(),
@@ -83,48 +96,65 @@ class SemanticChunker(BaseChunker):
         if not sentences_data:
             return []
 
-        # 2. Compute embeddings
-        texts = [s["text"] for s in sentences_data]
-        print(f"Generating embeddings for {len(texts)} sentences...")
-        embeddings = self.model.encode(texts)
+        # 2. Prepare sliding window texts for embedding
+        # This adds context to short sentences (like bullets)
+        texts_to_embed = []
+        for i in range(len(sentences_data)):
+            start = max(0, i - self.window_size)
+            end = min(len(sentences_data), i + self.window_size + 1)
+            window_text = " ".join([s["text"] for s in sentences_data[start:end]])
+            texts_to_embed.append(window_text)
 
+        # 3. Compute embeddings
+        print(f"Generating embeddings for {len(texts_to_embed)} windows...")
+        embeddings = self.model.encode(texts_to_embed)
+
+        # 4. Calculate cosine distances between adjacent sentences
+        distances = []
+        for i in range(len(embeddings) - 1):
+            sim = cosine_similarity([embeddings[i]], [embeddings[i+1]])[0][0]
+            # Clamp sim to [-1, 1] just in case
+            sim = max(-1.0, min(1.0, sim))
+            dist = 1 - sim
+            distances.append(dist)
+
+        # 5. Determine Threshold
+        if not distances:
+            # Only one sentence
+            return [self._create_chunk(sentences_data, 0, 1)]
+
+        # Calculate the percentile threshold
+        # e.g., 90th percentile means we only split at the top 10% of distances
+        threshold = np.percentile(distances, self.percentile_threshold)
+        print(f"Calculated split threshold: {threshold:.4f} (Percentile: {self.percentile_threshold})")
+
+        # 6. Split
         chunks = []
-        current_chunk_indices = [0]
+        start_idx = 0
 
-        # 3. Group sentences
-        for i in range(1, len(sentences_data)):
-            current_embedding = np.mean(embeddings[current_chunk_indices], axis=0).reshape(1, -1)
-            next_embedding = embeddings[i].reshape(1, -1)
+        for i, dist in enumerate(distances):
+            if dist > threshold:
+                # Split occurring after sentence i (so i is the last sentence of current chunk)
+                end_idx = i + 1
+                chunks.append(self._create_chunk(sentences_data, start_idx, end_idx))
+                start_idx = end_idx
 
-            # Calculate similarity
-            similarity = cosine_similarity(current_embedding, next_embedding)[0][0]
-
-            if similarity >= self.threshold:
-                # Expand chunk
-                current_chunk_indices.append(i)
-            else:
-                # Depreciated similarity, finalize current chunk
-                self._create_chunk_from_indices(chunks, sentences_data, current_chunk_indices)
-                # Start new chunk
-                current_chunk_indices = [i]
-
-        # Finalize last chunk
-        if current_chunk_indices:
-            self._create_chunk_from_indices(chunks, sentences_data, current_chunk_indices)
+        # Final chunk
+        if start_idx < len(sentences_data):
+            chunks.append(self._create_chunk(sentences_data, start_idx, len(sentences_data)))
 
         return chunks
 
-    def _create_chunk_from_indices(self, chunks_list, sentences_data, indices):
-        combined_text = " ".join([sentences_data[i]["text"] for i in indices])
+    def _create_chunk(self, sentences_data, start_idx, end_idx):
+        subset = sentences_data[start_idx:end_idx]
+        combined_text = " ".join([s["text"] for s in subset])
         combined_bboxes = []
-        for i in indices:
-            combined_bboxes.extend(sentences_data[i]["bboxes"])
+        for s in subset:
+            combined_bboxes.extend(s["bboxes"])
 
-        chunk = Chunk(
+        return Chunk(
             id=str(uuid.uuid4()),
             text=combined_text,
             bboxes=combined_bboxes,
-            metadata={"sentence_count": len(indices)}
+            metadata={"sentence_count": len(subset)}
         )
-        chunks_list.append(chunk)
-

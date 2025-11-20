@@ -28,7 +28,11 @@ document.getElementById('btn-select-pdf').addEventListener('click', async () => 
     const path = await window.pywebview.api.select_pdf();
     if (path) {
         currentPdfPath = path;
-        document.getElementById('selected-file').textContent = path;
+
+        // Format path: remove leading slash and replace / with ▶
+        // Adjust replacement logic based on OS if necessary, but simple string replace is fine for display
+        const formattedPath = path.replace(/^\//, '').split('/').join(' ▶ ');
+        document.getElementById('selected-file').textContent = formattedPath;
     }
 });
 
