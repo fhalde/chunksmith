@@ -57,21 +57,32 @@ document.getElementById('btn-process').addEventListener('click', async () => {
         currentChunks = result.chunks;
         currentPages = result.pages; // [{page, width, height}]
 
+        document.getElementById('chunk-count').textContent = currentChunks.length;
+        updateChunkIndicator();
+
         renderPdfPages(result.page_count);
         renderChunksList();
 
         if (currentChunks.length > 0) {
             selectChunk(0);
+        } else {
+             document.getElementById('chunk-list').innerHTML = '<div class="empty-state">No chunks detected. Try adjusting settings.</div>';
         }
 
     } catch (e) {
         console.error(e);
         alert("An error occurred processing the PDF.");
     } finally {
-        document.getElementById('btn-process').textContent = "Process";
+        document.getElementById('btn-process').textContent = "Run Analysis";
         document.getElementById('btn-process').disabled = false;
     }
 });
+
+function updateChunkIndicator() {
+    const current = selectedChunkIndex + 1;
+    const total = currentChunks.length;
+    document.getElementById('chunk-indicator').textContent = total > 0 ? `${current} / ${total}` : "-- / --";
+}
 
 document.getElementById('btn-prev').addEventListener('click', () => {
     if (selectedChunkIndex > 0) {
@@ -146,6 +157,8 @@ function selectChunk(index) {
     }
 
     selectedChunkIndex = index;
+    updateChunkIndicator();
+
     const newItem = document.getElementById(`chunk-item-${index}`);
     if (newItem) {
         newItem.classList.add('active');

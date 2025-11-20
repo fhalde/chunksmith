@@ -3,39 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Chunker</title>
+    <title>ChunkSmith</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <div class="sidebar">
-            <div class="controls">
-                <button id="btn-select-pdf">Select PDF</button>
-                <div id="selected-file" class="file-path">No file selected</div>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>ChunkSmith</h1>
+                <p>Workbench for Chunk Engineers</p>
+            </div>
 
-                <label for="algorithm-select">Algorithm:</label>
-                <select id="algorithm-select"></select>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <button id="btn-select-pdf" class="btn btn-secondary">
+                        <span class="icon">📄</span> Select PDF
+                    </button>
+                    <div id="selected-file" class="file-path">No file selected</div>
+                </div>
 
-                <button id="btn-process">Process</button>
+                <div class="control-group">
+                    <label for="algorithm-select">Algorithm</label>
+                    <div class="select-wrapper">
+                        <select id="algorithm-select"></select>
+                    </div>
+                </div>
+
+                <button id="btn-process" class="btn btn-primary">Run Analysis</button>
+            </div>
+
+            <div class="chunk-list-header">
+                <h3>Detected Chunks</h3>
+                <span class="badge" id="chunk-count">0</span>
             </div>
 
             <div class="chunk-list-container">
-                <h3>Chunks</h3>
-                <div id="chunk-list"></div>
+                <div id="chunk-list" class="chunk-list">
+                    <!-- Chunks will be inserted here -->
+                    <div class="empty-state">
+                        Run an analysis to see chunks here.
+                    </div>
+                </div>
             </div>
 
             <div class="navigation">
-                <button id="btn-prev">Previous</button>
-                <button id="btn-next">Next</button>
+                <button id="btn-prev" class="btn btn-icon" aria-label="Previous Chunk">←</button>
+                <span id="chunk-indicator">-- / --</span>
+                <button id="btn-next" class="btn btn-icon" aria-label="Next Chunk">→</button>
             </div>
-        </div>
+        </aside>
 
-        <div class="main-content" id="pdf-container">
-            <div id="pages-wrapper"></div>
-        </div>
+        <main class="main-content" id="pdf-container">
+            <div id="pages-wrapper">
+                <div class="placeholder-content">
+                    <h2>Ready to Chunk</h2>
+                    <p>Select a PDF and an algorithm to begin.</p>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
-
