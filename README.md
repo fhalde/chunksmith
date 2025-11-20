@@ -1,8 +1,11 @@
-# ChunkSmith
+ChunkSmith
 
 **ChunkSmith** is a specialized workbench for Chunk Engineers. It allows you to visualize, test, and refine PDF chunking algorithms.
 
 Designed for developers building RAG (Retrieval-Augmented Generation) pipelines, ChunkSmith provides a visual interface to see exactly *where* and *how* your documents are being split.
+
+![gifgif](https://github.com/user-attachments/assets/bcfff371-0afa-425a-86f2-05473f144ab5)
+
 
 ## Installation
 
